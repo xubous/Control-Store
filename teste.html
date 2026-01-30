@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Estoque - Sorveteria</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #FF6B9D;
+            --secondary: #FEC89A;
+            --accent: #C4E0FF;
+            --dark: #2C3E50;
+            --light: #F8F9FA;
+            --success: #4CAF50;
+            --warning: #FF9800;
+            --danger: #F44336;
+            --shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 280px 1fr 350px;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .user-profile {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 15px;
+            color: white;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: white;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .user-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .user-role {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .category-filters {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .category-label {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 14px;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: var(--light);
+        }
+
+        .filter-option:hover {
+            background: var(--accent);
+            transform: translateX(5px);
+        }
+
+        .filter-option.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .filter-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .filter-option.active .filter-icon {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .filter-option:not(.active) .filter-icon {
+            background: white;
+        }
+
+        /* Main Content */
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px var(--shadow);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .search-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .search-input {
+            padding: 12px 20px 12px 45px;
+            border: 2px solid var(--light);
+            border-radius: 25px;
+            width: 300px;
+            font-size: 14px;
+            background: var(--light) url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23666" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>') no-repeat 15px center;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: white;
+        }
+
+        .add-button {
+            padding: 12px 25px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.3s;
+        }
+
+        .add-button:hover {
+            transform: scale(1.05);
+        }
+
+        .inventory-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 20px;
+            flex: 1;
+        }
+
+        .product-card {
+            background: white;
+            border: 2px solid var(--light);
+            border-radius: 15px;
+            padding: 20px;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s;
+        }
+
+        .product-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .product-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 30px var(--shadow);
+            transform: translateY(-5px);
+        }
+
+        .product-icon {
+            width: 70px;
+            height: 70px;
+            margin: 0 auto 15px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            background: linear-gradient(135deg, var(--accent), #E0E7FF);
+        }
+
+        .product-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--dark);
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .info-label {
+            font-weight: 500;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .stock-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--light);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        .stock-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), #81C784);
+            border-radius: 10px;
+            transition: width 0.5s;
+        }
+
+        .stock-fill.medium {
+            background: linear-gradient(90deg, var(--warning), #FFB74D);
+        }
+
+        .stock-fill.low {
+            background: linear-gradient(90deg, var(--danger), #E57373);
+        }
+
+        .stock-status {
+            text-align: center;
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .stock-status.high {
+            background: #E8F5E9;
+            color: var(--success);
+        }
+
+        .stock-status.medium {
+            background: #FFF3E0;
+            color: var(--warning);
+        }
+
+        .stock-status.low {
+            background: #FFEBEE;
+            color: var(--danger);
+        }
+
+        /* Right Panel - Alertas */
+        .alerts-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .panel-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-item {
+            padding: 15px;
+            border-left: 4px solid var(--warning);
+            background: #FFF3E0;
+            border-radius: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .alert-item.danger {
+            border-left-color: var(--danger);
+            background: #FFEBEE;
+        }
+
+        .alert-title {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .alert-description {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .alert-icon {
+            font-size: 20px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            animation: scaleIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--light);
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: #E0E0E0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar, .alerts-panel {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .inventory-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="user-profile">
+                <div class="user-avatar">👤</div>
+                <div class="user-name">Funcionário</div>
+                <div class="user-role">Gerente de Estoque</div>
+            </div>
+
+            <div class="category-filters">
+                <div class="category-label">Categorias</div>
+                <div class="filter-option active" onclick="filterCategory('todos')">
+                    <div class="filter-icon">🍦</div>
+                    <span>Todos</span>
+                </div>
+                <div class="filter-option" onclick="filterCategory('cremoso')">
+                    <div class="filter-icon">🥛</div>
+                    <span>Cremosos</span>
+                </div>
+                <div class="filter-option" onclick="filterCategory('fruta')">
+                    <div class="filter-icon">🍓</div>
+                    <span>Frutas</span>
+                </div>
+                <div class="filter-option" onclick="filterCategory('especial')">
+                    <div class="filter-icon">⭐</div>
+                    <span>Especiais</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header">
+                <h1 class="header-title">Estoque de Sorvetes 🍨</h1>
+                <div class="search-bar">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Buscar sorvetes..." onkeyup="searchProducts()">
+                    <button class="add-button" onclick="openModal()">
+                        <span>➕</span>
+                        <span>Adicionar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="inventory-grid" id="inventoryGrid">
+                <!-- Products will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Alerts Panel -->
+        <div class="alerts-panel">
+            <div class="panel-title">
+                <span>🔔</span>
+                <span>Alertas</span>
+            </div>
+            <div id="alertsContainer">
+                <!-- Alerts will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <h2 class="modal-header" id="modalTitle">Adicionar Produto</h2>
+            <form id="productForm">
+                <div class="form-group">
+                    <label class="form-label">Nome do Sorvete</label>
+                    <input type="text" class="form-input" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Categoria</label>
+                    <select class="form-select" id="productCategory" required>
+                        <option value="cremoso">Cremoso</option>
+                        <option value="fruta">Fruta</option>
+                        <option value="especial">Especial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Quantidade (litros)</label>
+                    <input type="number" class="form-input" id="productQuantity" min="0" step="0.5" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Estoque Mínimo (litros)</label>
+                    <input type="number" class="form-input" id="productMinStock" min="0" step="0.5" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Emoji</label>
+                    <input type="text" class="form-input" id="productEmoji" placeholder="🍦" maxlength="2">
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initial products data
+        let products = [
+            { id: 1, name: 'Chocolate', category: 'cremoso', quantity: 15, minStock: 5, emoji: '🍫' },
+            { id: 2, name: 'Baunilha', category: 'cremoso', quantity: 12, minStock: 5, emoji: '🥛' },
+            { id: 3, name: 'Morango', category: 'fruta', quantity: 8, minStock: 5, emoji: '🍓' },
+            { id: 4, name: 'Creme', category: 'cremoso', quantity: 10, minStock: 5, emoji: '🍦' },
+            { id: 5, name: 'Coco', category: 'fruta', quantity: 3, minStock: 5, emoji: '🥥' },
+            { id: 6, name: 'Limão', category: 'fruta', quantity: 6, minStock: 5, emoji: '🍋' },
+            { id: 7, name: 'Pistache', category: 'especial', quantity: 4, minStock: 3, emoji: '🌰' },
+            { id: 8, name: 'Doce de Leite', category: 'especial', quantity: 7, minStock: 4, emoji: '🍮' },
+        ];
+
+        let currentFilter = 'todos';
+        let editingId = null;
+
+        // Load products
+        function loadProducts() {
+            const grid = document.getElementById('inventoryGrid');
+            const filtered = currentFilter === 'todos' 
+                ? products 
+                : products.filter(p => p.category === currentFilter);
+
+            grid.innerHTML = filtered.map(product => {
+                const percentage = (product.quantity / (product.minStock * 3)) * 100;
+                let statusClass = 'high';
+                let statusText = 'Estoque OK';
+                let barClass = '';
+
+                if (percentage <= 33) {
+                    statusClass = 'low';
+                    statusText = 'Estoque Baixo';
+                    barClass = 'low';
+                } else if (percentage <= 66) {
+                    statusClass = 'medium';
+                    statusText = 'Estoque Médio';
+                    barClass = 'medium';
+                }
+
+                return `
+                    <div class="product-card" onclick="editProduct(${product.id})">
+                        <div class="product-icon">${product.emoji}</div>
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-info">
+                            <div class="info-row">
+                                <span class="info-label">Quantidade:</span>
+                                <span class="info-value">${product.quantity}L</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Mínimo:</span>
+                                <span class="info-value">${product.minStock}L</span>
+                            </div>
+                        </div>
+                        <div class="stock-bar">
+                            <div class="stock-fill ${barClass}" style="width: ${Math.min(percentage, 100)}%"></div>
+                        </div>
+                        <div class="stock-status ${statusClass}">${statusText}</div>
+                    </div>
+                `;
+            }).join('');
+
+            updateAlerts();
+        }
+
+        // Update alerts
+        function updateAlerts() {
+            const alertsContainer = document.getElementById('alertsContainer');
+            const lowStock = products.filter(p => p.quantity <= p.minStock);
+            const mediumStock = products.filter(p => p.quantity > p.minStock && p.quantity <= p.minStock * 2);
+
+            const alerts = [
+                ...lowStock.map(p => ({
+                    type: 'danger',
+                    title: `${p.emoji} ${p.name} - Crítico!`,
+                    description: `Apenas ${p.quantity}L em estoque`
+                })),
+                ...mediumStock.map(p => ({
+                    type: 'warning',
+                    title: `${p.emoji} ${p.name} - Atenção`,
+                    description: `${p.quantity}L restantes`
+                }))
+            ];
+
+            if (alerts.length === 0) {
+                alertsContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #999;">
+                        <div style="font-size: 48px; margin-bottom: 10px;">✅</div>
+                        <div style="font-size: 14px;">Tudo certo com o estoque!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            alertsContainer.innerHTML = alerts.map(alert => `
+                <div class="alert-item ${alert.type}">
+                    <div class="alert-title">${alert.title}</div>
+                    <div class="alert-description">
+                        <span class="alert-icon">${alert.type === 'danger' ? '⚠️' : '⚡'}</span>
+                        <span>${alert.description}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter category
+        function filterCategory(category) {
+            currentFilter = category;
+            
+            // Update active filter
+            document.querySelectorAll('.filter-option').forEach(option => {
+                option.classList.remove('active');
+            });
+            event.target.closest('.filter-option').classList.add('active');
+            
+            loadProducts();
+        }
+
+        // Search products
+        function searchProducts() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('inventoryGrid');
+            
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(search) &&
+                (currentFilter === 'todos' || p.category === currentFilter)
+            );
+
+            grid.innerHTML = filtered.map(product => {
+                const percentage = (product.quantity / (product.minStock * 3)) * 100;
+                let statusClass = 'high';
+                let statusText = 'Estoque OK';
+                let barClass = '';
+
+                if (percentage <= 33) {
+                    statusClass = 'low';
+                    statusText = 'Estoque Baixo';
+                    barClass = 'low';
+                } else if (percentage <= 66) {
+                    statusClass = 'medium';
+                    statusText = 'Estoque Médio';
+                    barClass = 'medium';
+                }
+
+                return `
+                    <div class="product-card" onclick="editProduct(${product.id})">
+                        <div class="product-icon">${product.emoji}</div>
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-info">
+                            <div class="info-row">
+                                <span class="info-label">Quantidade:</span>
+                                <span class="info-value">${product.quantity}L</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Mínimo:</span>
+                                <span class="info-value">${product.minStock}L</span>
+                            </div>
+                        </div>
+                        <div class="stock-bar">
+                            <div class="stock-fill ${barClass}" style="width: ${Math.min(percentage, 100)}%"></div>
+                        </div>
+                        <div class="stock-status ${statusClass}">${statusText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Open modal
+        function openModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Adicionar Produto';
+            document.getElementById('productForm').reset();
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+            editingId = null;
+        }
+
+        // Edit product
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Produto';
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category;
+            document.getElementById('productQuantity').value = product.quantity;
+            document.getElementById('productMinStock').value = product.minStock;
+            document.getElementById('productEmoji').value = product.emoji;
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        // Form submit
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const data = {
+                name: document.getElementById('productName').value,
+                category: document.getElementById('productCategory').value,
+                quantity: parseFloat(document.getElementById('productQuantity').value),
+                minStock: parseFloat(document.getElementById('productMinStock').value),
+                emoji: document.getElementById('productEmoji').value || '🍦'
+            };
+            
+            if (editingId) {
+                // Edit existing product
+                const index = products.findIndex(p => p.id === editingId);
+                products[index] = { ...products[index], ...data };
+            } else {
+                // Add new product
+                const newId = Math.max(...products.map(p => p.id)) + 1;
+                products.push({ id: newId, ...data });
+            }
+
+            closeModal();
+            loadProducts();
+        });
+
+        // Close modal on background click
+        document.getElementById('productModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize
+        loadProducts();
+    </script>
+</body>
+</html>
