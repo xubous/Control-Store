@@ -1,0 +1,991 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Estoque - Sorveteria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .save-indicator {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 20px;
+            font-size: 13px;
+            margin-left: 15px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .save-indicator.show {
+            opacity: 1;
+        }
+
+        .search-add {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .btn-add {
+            padding: 12px 30px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-add:hover {
+            background: #45a049;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 25px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #4CAF50;
+            border-bottom-color: #4CAF50;
+        }
+
+        .tab:hover {
+            color: #4CAF50;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        
+        .notes-section {
+            margin-top: 20px;
+        }
+
+        .notes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .notes-header h2 {
+            font-size: 22px;
+            color: #333;
+        }
+
+        .btn-add-note {
+            padding: 10px 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+        }
+
+        .btn-add-note:hover {
+            background: #1976D2;
+        }
+
+        .notes-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .note-card {
+            background: #fff9e6;
+            border-left: 4px solid #FFC107;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .note-date {
+            font-size: 13px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .note-text {
+            color: #333;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .btn-edit-note {
+            padding: 5px 10px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-edit-note:hover {
+            background: #1976D2;
+        }
+
+        .btn-delete-note {
+            padding: 5px 10px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-delete-note:hover {
+            background: #d32f2f;
+        }
+
+        .empty-notes {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 20px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .filter-btn.active {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background: #f8f8f8;
+            padding: 15px;
+            text-align: left;
+            font-size: 16px;
+            border-bottom: 2px solid #ddd;
+            color: #333;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .status-ok {
+            background: #e8f5e9;
+            color: #4CAF50;
+        }
+
+        .status-atencao {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+
+        .status-baixo {
+            background: #ffebee;
+            color: #f44336;
+        }
+
+        .btn-edit {
+            padding: 8px 15px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-edit:hover {
+            background: #1976D2;
+        }
+
+        .btn-delete {
+            padding: 8px 15px;
+            background: #f44336;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 5px;
+        }
+
+        .btn-delete:hover {
+            background: #d32f2f;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+            font-size: 15px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 15px;
+            font-family: Arial, sans-serif;
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .btn-cancel {
+            flex: 1;
+            padding: 12px;
+            background: #999;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn-save {
+            flex: 1;
+            padding: 12px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-cancel:hover {
+            background: #777;
+        }
+
+        .btn-save:hover {
+            background: #45a049;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+            font-size: 16px;
+        }
+
+        .backup-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f8f8;
+            border-radius: 5px;
+            border: 2px dashed #ddd;
+        }
+
+        .backup-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .backup-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-backup {
+            padding: 10px 20px;
+            background: #607D8B;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-backup:hover {
+            background: #546E7A;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th, td {
+                padding: 10px 5px;
+            }
+
+            .search-add {
+                flex-direction: column;
+            }
+
+            .tabs {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                Controle de Estoque de Sorvetes
+                <span class="save-indicator" id="saveIndicator">✓ Salvo</span>
+            </h1>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('estoque')">📦 Estoque</button>
+            <button class="tab" onclick="switchTab('anotacoes')">📝 Anotações Diárias</button>
+        </div>
+
+        <div class="tab-content active" id="tab-estoque">
+            <div class="search-add">
+                <input type="text" class="search-box" id="searchInput" placeholder="Pesquisar sorvete..." onkeyup="searchProducts()">
+                <button class="btn-add" onclick="openModal()">+ Adicionar Sorvete</button>
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterCategory('todos')">Todos</button>
+                <button class="filter-btn" onclick="filterCategory('cremoso')">Cremosos</button>
+                <button class="filter-btn" onclick="filterCategory('fruta')">Frutas</button>
+                <button class="filter-btn" onclick="filterCategory('especial')">Especiais</button>
+            </div>
+
+            <table id="productsTable">
+                <thead>
+                    <tr>
+                        <th>Sorvete</th>
+                        <th>Categoria</th>
+                        <th>Quantidade</th>
+                        <th>Mínimo</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+        
+                </tbody>
+            </table>
+
+            <div class="backup-section">
+                <h3>🔒 Backup dos Dados</h3>
+                <p style="margin-bottom: 15px; color: #666; font-size: 14px;">
+                    Os dados são salvos automaticamente no navegador. Use as opções abaixo para fazer backup.
+                </p>
+                <div class="backup-buttons">
+                    <button class="btn-backup" onclick="exportData()">⬇️ Baixar Backup</button>
+                    <button class="btn-backup" onclick="importData()">⬆️ Restaurar Backup</button>
+                    <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-anotacoes">
+            <div class="notes-section">
+                <div class="notes-header">
+                    <h2>Anotações Diárias</h2>
+                    <button class="btn-add-note" onclick="openNoteModal()">+ Nova Anotação</button>
+                </div>
+                <div class="notes-list" id="notesList">
+        
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal" id="productModal">
+        <div class="modal-content">
+            <h2 id="modalTitle">Adicionar Sorvete</h2>
+            <form id="productForm">
+                <div class="form-group">
+                    <label>Nome do Sorvete</label>
+                    <input type="text" id="productName" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select id="productCategory" required>
+                        <option value="cremoso">Cremoso</option>
+                        <option value="fruta">Fruta</option>
+                        <option value="especial">Especial</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantidade (litros)</label>
+                    <input type="number" id="productQuantity" min="0" step="0.5" required>
+                </div>
+                <div class="form-group">
+                    <label>Estoque Mínimo (litros)</label>
+                    <input type="number" id="productMinStock" min="0" step="0.5" required>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal" id="noteModal">
+        <div class="modal-content">
+            <h2 id="noteModalTitle">Nova Anotação</h2>
+            <form id="noteForm">
+                <div class="form-group">
+                    <label>Data</label>
+                    <input type="date" id="noteDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Anotação</label>
+                    <textarea id="noteText" required placeholder="Ex: Vendas altas de chocolate hoje. Repor amanhã cedo."></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeNoteModal()">Cancelar</button>
+                    <button type="submit" class="btn-save">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_PRODUCTS = 'sorveteria_produtos';
+        const STORAGE_NOTES = 'sorveteria_anotacoes';
+
+        function loadFromStorage(key, defaultValue) {
+            try {
+                const data = localStorage.getItem(key);
+                return data ? JSON.parse(data) : defaultValue;
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                return defaultValue;
+            }
+        }
+
+        function saveToStorage(key, data) {
+            try {
+                localStorage.setItem(key, JSON.stringify(data));
+                showSaveIndicator();
+            } catch (error) {
+                console.error('Erro ao salvar dados:', error);
+                alert('Erro ao salvar dados. Verifique se há espaço disponível.');
+            }
+        }
+
+        function showSaveIndicator() {
+            const indicator = document.getElementById('saveIndicator');
+            indicator.classList.add('show');
+            setTimeout(() => {
+                indicator.classList.remove('show');
+            }, 2000);
+        }
+
+        let products = loadFromStorage(STORAGE_PRODUCTS, [
+        ]);
+
+        let notes = loadFromStorage(STORAGE_NOTES, []);
+
+        let currentFilter = 'todos';
+        let editingId = null;
+        let editingNoteId = null;
+
+        function switchTab(tabName) {
+
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById('tab-' + tabName).classList.add('active');
+
+
+            if (tabName === 'anotacoes') {
+                loadNotes();
+            }
+        }
+
+        function loadProducts() {
+            const tbody = document.getElementById('tableBody');
+            const filtered = currentFilter === 'todos' 
+                ? products 
+                : products.filter(p => p.category === currentFilter);
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Nenhum sorvete encontrado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(product => {
+                let status = 'OK';
+                let statusClass = 'status-ok';
+
+                if (product.quantity <= product.minStock) {
+                    status = 'BAIXO';
+                    statusClass = 'status-baixo';
+                } else if (product.quantity <= product.minStock * 2) {
+                    status = 'ATENÇÃO';
+                    statusClass = 'status-atencao';
+                }
+
+                const categoryNames = {
+                    'cremoso': 'Cremoso',
+                    'fruta': 'Fruta',
+                    'especial': 'Especial'
+                };
+
+                return `
+                    <tr>
+                        <td><strong>${product.name}</strong></td>
+                        <td>${categoryNames[product.category]}</td>
+                        <td>${product.quantity}L</td>
+                        <td>${product.minStock}L</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>
+                            <button class="btn-edit" onclick="editProduct(${product.id})">Editar</button>
+                            <button class="btn-delete" onclick="deleteProduct(${product.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterCategory(category) {
+            currentFilter = category;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            loadProducts();
+        }
+
+        function searchProducts() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const tbody = document.getElementById('tableBody');
+            
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(search) &&
+                (currentFilter === 'todos' || p.category === currentFilter)
+            );
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-message">Nenhum sorvete encontrado</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(product => {
+                let status = 'OK';
+                let statusClass = 'status-ok';
+
+                if (product.quantity <= product.minStock) {
+                    status = 'BAIXO';
+                    statusClass = 'status-baixo';
+                } else if (product.quantity <= product.minStock * 2) {
+                    status = 'ATENÇÃO';
+                    statusClass = 'status-atencao';
+                }
+
+                const categoryNames = {
+                    'cremoso': 'Cremoso',
+                    'fruta': 'Fruta',
+                    'especial': 'Especial'
+                };
+
+                return `
+                    <tr>
+                        <td><strong>${product.name}</strong></td>
+                        <td>${categoryNames[product.category]}</td>
+                        <td>${product.quantity}L</td>
+                        <td>${product.minStock}L</td>
+                        <td><span class="status-badge ${statusClass}">${status}</span></td>
+                        <td>
+                            <button class="btn-edit" onclick="editProduct(${product.id})">Editar</button>
+                            <button class="btn-delete" onclick="deleteProduct(${product.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openModal() {
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Adicionar Sorvete';
+            document.getElementById('productForm').reset();
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('active');
+            editingId = null;
+        }
+
+        function editProduct(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Sorvete';
+            document.getElementById('productName').value = product.name;
+            document.getElementById('productCategory').value = product.category;
+            document.getElementById('productQuantity').value = product.quantity;
+            document.getElementById('productMinStock').value = product.minStock;
+            document.getElementById('productModal').classList.add('active');
+        }
+
+        function deleteProduct(id) {
+            if (confirm('Tem certeza que deseja excluir este sorvete?')) {
+                products = products.filter(p => p.id !== id);
+                saveToStorage(STORAGE_PRODUCTS, products);
+                loadProducts();
+            }
+        }
+
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const data = {
+                name: document.getElementById('productName').value,
+                category: document.getElementById('productCategory').value,
+                quantity: parseFloat(document.getElementById('productQuantity').value),
+                minStock: parseFloat(document.getElementById('productMinStock').value)
+            };
+
+            if (editingId) {
+                const index = products.findIndex(p => p.id === editingId);
+                products[index] = { ...products[index], ...data };
+            } else {
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                products.push({ id: newId, ...data });
+            }
+
+            saveToStorage(STORAGE_PRODUCTS, products);
+            closeModal();
+            loadProducts();
+        });
+
+        function loadNotes() {
+            const notesList = document.getElementById('notesList');
+            
+            if (notes.length === 0) {
+                notesList.innerHTML = '<div class="empty-notes">📝 Nenhuma anotação ainda. Clique em "Nova Anotação" para começar.</div>';
+                return;
+            }
+
+
+            const sortedNotes = [...notes].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            notesList.innerHTML = sortedNotes.map(note => {
+                const date = new Date(note.date + 'T00:00:00');
+                const formattedDate = date.toLocaleDateString('pt-BR', { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric' 
+                });
+
+                return `
+                    <div class="note-card">
+                        <div class="note-header">
+                            <div class="note-date">📅 ${formattedDate}</div>
+                            <div class="note-actions">
+                                <button class="btn-edit-note" onclick="editNote(${note.id})">Editar</button>
+                                <button class="btn-delete-note" onclick="deleteNote(${note.id})">Excluir</button>
+                            </div>
+                        </div>
+                        <div class="note-text">${note.text}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openNoteModal() {
+            editingNoteId = null;
+            document.getElementById('noteModalTitle').textContent = 'Nova Anotação';
+            document.getElementById('noteForm').reset();
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('noteDate').value = today;
+            document.getElementById('noteModal').classList.add('active');
+        }
+
+        function closeNoteModal() {
+            document.getElementById('noteModal').classList.remove('active');
+            editingNoteId = null;
+        }
+
+        function editNote(id) {
+            const note = notes.find(n => n.id === id);
+            if (!note) return;
+
+            editingNoteId = id;
+            document.getElementById('noteModalTitle').textContent = 'Editar Anotação';
+            document.getElementById('noteDate').value = note.date;
+            document.getElementById('noteText').value = note.text;
+            document.getElementById('noteModal').classList.add('active');
+        }
+
+        function deleteNote(id) {
+            if (confirm('Tem certeza que deseja excluir esta anotação?')) {
+                notes = notes.filter(n => n.id !== id);
+                saveToStorage(STORAGE_NOTES, notes);
+                loadNotes();
+            }
+        }
+
+        document.getElementById('noteForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const data = {
+                date: document.getElementById('noteDate').value,
+                text: document.getElementById('noteText').value
+            };
+
+            if (editingNoteId) {
+                const index = notes.findIndex(n => n.id === editingNoteId);
+                notes[index] = { ...notes[index], ...data };
+            } else {
+                const newId = notes.length > 0 ? Math.max(...notes.map(n => n.id)) + 1 : 1;
+                notes.push({ id: newId, ...data });
+            }
+
+            saveToStorage(STORAGE_NOTES, notes);
+            closeNoteModal();
+            loadNotes();
+        });
+
+        function exportData() {
+            const data = {
+                products: products,
+                notes: notes,
+                exportDate: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `backup-sorveteria-${new Date().toISOString().split('T')[0]}.json`;
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            alert('✅ Backup baixado com sucesso!');
+        }
+
+        function importData() {
+            if (confirm('⚠️ Isso vai substituir todos os dados atuais. Tem certeza?')) {
+                document.getElementById('fileInput').click();
+            }
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if (data.products && data.notes) {
+                        products = data.products;
+                        notes = data.notes;
+                        
+                        saveToStorage(STORAGE_PRODUCTS, products);
+                        saveToStorage(STORAGE_NOTES, notes);
+                        
+                        loadProducts();
+                        loadNotes();
+                        
+                        alert('✅ Backup restaurado com sucesso!');
+                    } else {
+                        alert('❌ Arquivo de backup inválido.');
+                    }
+                } catch (error) {
+                    console.error('Erro ao importar:', error);
+                    alert('❌ Erro ao ler o arquivo de backup.');
+                }
+            };
+            reader.readAsText(file);
+            
+
+            event.target.value = '';
+        }
+
+        document.getElementById('productModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        document.getElementById('noteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNoteModal();
+            }
+        });
+
+        loadProducts();
+        loadNotes();
+    </script>
+</body>
+</html>
