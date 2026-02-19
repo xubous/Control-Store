@@ -481,6 +481,63 @@
                 overflow-x: auto;
             }
         }
+            @media (max-width:768px){
+
+                body{padding:10px}
+
+                .container{
+                    padding:15px;
+                    border-radius:0;
+                }
+
+                .search-add{
+                    flex-direction:column;
+                }
+
+                .filter-buttons{
+                    display:grid;
+                    grid-template-columns:1fr 1fr;
+                    gap:8px;
+                }
+
+                .tabs{
+                    flex-direction:column;
+                }
+
+                table, thead, tbody, th, td, tr{
+                    display:block;
+                    width:100%;
+                }
+
+                thead{display:none}
+
+                tr{
+                    background:white;
+                    margin-bottom:15px;
+                    padding:15px;
+                    border-radius:8px;
+                    box-shadow:0 2px 6px rgba(0,0,0,0.05);
+                }
+
+                td{
+                    border:none;
+                    padding:6px 0;
+                }
+
+                td:before{
+                    font-weight:bold;
+                    display:block;
+                    color:#555;
+                    margin-bottom:2px;
+                }
+
+                td:nth-child(1):before{content:"Sorvete"}
+                td:nth-child(2):before{content:"Categoria"}
+                td:nth-child(3):before{content:"Quantidade"}
+                td:nth-child(4):before{content:"Mínimo"}
+                td:nth-child(5):before{content:"Status"}
+                td:nth-child(6):before{content:"Ações"}
+            }
     </style>
 </head>
 <body>
